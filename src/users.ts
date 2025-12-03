@@ -10,7 +10,6 @@ import { isValid32ByteHex } from "./utils.ts";
 export function createUsersApp(db: DB, nwcPool: NWCPool) {
   const hono = new Hono();
 
-  // Authentication middleware function
   const checkApiKey = (c: any) => {
     const apiKey = c.req.header("X-API-Key");
     const expectedKey = Deno.env.get("API_KEY");
@@ -29,7 +28,6 @@ export function createUsersApp(db: DB, nwcPool: NWCPool) {
   };
 
   hono.post("/", async (c) => {
-    // Check authentication
     if (!checkApiKey(c)) {
       return c.json({ status: "ERROR", reason: "Unauthorized" }, 401);
     }
@@ -79,5 +77,29 @@ export function createUsersApp(db: DB, nwcPool: NWCPool) {
     }
   });
 
+  hono.delete("/:username", async (c) => {
+    const serverAPIKey = Deno.env.get("API_KEY");
+
+    if (!serverAPIKey || !checkApiKey(c)) {
+      return c.json({ status: "ERROR", reason: "Unauthorized" }, 401);
+    }
+
+    try {
+      const username = c.req.param("username");
+      logger.debug("delete user", { username });
+
+      const result = await db.deleteUser(username);
+
+      if (result) {
+        return c.json({ status: "SUCCESS", message: `User ${username} deleted` });
+      } else {
+        return c.json({ status: "ERROR", reason: "User not found" }, 404);
+      }
+    } catch (error) {
+      logger.error("Failed to delete user", { error, username: c.req.param("username") });
+      return c.json({ status: "ERROR", reason: "Internal server error" }, 500);
+    }
+  });
+ 
   return hono;
 }

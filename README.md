@@ -35,6 +35,21 @@ Note: if a username is not provided, a random one will be generated.
 }
 ```
 
+`DELETE /users`
+
+```bash
+curl -s -X DELETE -H "X-API-Key: your-api-key-here" https://your-domain.com/users/USER-TO-DELETE"
+```
+
+`returns`
+
+```json
+{
+  status: "SUCCESS",
+  message: "User USER-TO-DELETE deleted"
+}
+```
+
 ## Development
 
 - [Install Deno](https://docs.deno.com/runtime/manual/getting_started/installation/)
